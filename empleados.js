@@ -7,11 +7,11 @@ empleadosRouter
 
 .post("/", async (req, res) => {
     const nuevoEmpleado = req.body.empleado;
-    const [rows] = await db.execute(
-      "insert into empleados (nombre, apellido) values (:nombre, :apellido)",
+    await db.execute(
+      "insert into empleados (nom_empleado, apellido_empleado) values (:nom_empleado, :apellido_empleado)",
       {
-        nombre: nuevoEmpleado.nombre,
-        apellido: nuevoEmpleado.apellido,
+        nom_empleado: nuevoEmpleado.nom_empleado,
+        apellido_empleado: nuevoEmpleado.apellido_empleado,
       }
     );
     res.status(201).send({ mensaje: "Empleado agregado" });
@@ -21,7 +21,7 @@ empleadosRouter
   .get("/:id", async (req, res) => {
     const id = req.params.id;
     const [rows, fields] = await db.execute(
-      "SELECT * FROM EMPLEADOS WHERE ID_EMPLEADOS=:id",
+      "SELECT * FROM EMPLEADOS WHERE ID=:id",
       { id }
     );
     if (rows.length > 0) {
@@ -46,17 +46,17 @@ empleadosRouter
     const id = req.params.id;
     const nuevosDatosEmpleado = req.body.empleadoEdit;
     await db.execute(
-      "update empleados set nombre=:nombre, apellido=:apellido WHERE id_empleados=:id",
+      "update empleados set id=:id, nom_empleado=:nom_empleado, apellido_empleado=:apellido_empleado WHERE id=:id",
       {
         id: id,
-        nombre: nuevosDatosEmpleado.nombre,
-        apellido: nuevosDatosEmpleado.apellido,
+        nom_empleado: nuevosDatosEmpleado.nom_empleado,
+        apellido_empleado: nuevosDatosEmpleado.apellido_empleado,
       }
     );
     res.status(200).send("Empleado modificado");
   })
   .delete("/:id", async (req, res) => {
     const id = req.params.id;
-    await db.execute("delete from empleados where id_empleados=:id", { id });
+    await db.execute("delete from empleados where id=:id", { id });
     res.status(200).send({ mensaje: "Empleado eliminado" });
   });

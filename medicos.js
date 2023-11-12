@@ -22,7 +22,7 @@ medicosRouter
   .get("/:id", async (req, res) => {
     const id = req.params.id;
     const [rows, fields] = await db.execute(
-      "SELECT * FROM MEDICOS WHERE ID_MEDICOS=:id",
+      "SELECT * FROM MEDICOS WHERE ID_MEDICO=:id",
       { id }
     );
     if (rows.length > 0) {

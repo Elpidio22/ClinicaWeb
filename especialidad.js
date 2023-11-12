@@ -5,12 +5,21 @@ export const especialidadRouter = express.Router()
 
 especialidadRouter
 
+//Consultar todas las Especialidades
+.get("/", async (req, res) => {
+  const [rows, fields] = await db.execute("SELECT * FROM especialidad");
+  res.status(200).send({
+    totalRows: rows.length,
+    data: rows,
+  });
+})
+
 .post("/", async (req, res) => {
     const nuevoEspecialidad = req.body.especialidad;
-    const [rows] = await db.execute(
+    await db.execute(
       "insert into especialidad (nombre) values (:nombre)",
       {
-        nombre: nuevoEspecialidad.nombre,
+        nombre:nuevoEspecialidad.nombre,
       }
     );
     res.status(201).send({ mensaje: "Especialidad agregado" });
@@ -30,12 +39,5 @@ especialidadRouter
     }
   })
   
-  //Consultar todas las Especialidades
-  .get("/", async (req, res) => {
-    const [rows, fields] = await db.execute("SELECT * FROM ESPECIALIDAD");
-    if (rows.length > 0) {
-      res.status(200).send(rows);
-    } else {
-      res.status(404).send("Especialidad no encontrado");
-    }
-  })
+ 
+
