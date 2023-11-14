@@ -1,24 +1,35 @@
 import express from "express";
 import { db } from "./db.js";
+import { body, param, query, validationResult } from "express-validator";
 
 export const empleadosRouter = express.Router()
 
 empleadosRouter
 
-.post("/", async (req, res) => {
-    const nuevoEmpleado = req.body.empleado;
-    await db.execute(
-      "insert into empleados (nom_empleado, apellido_empleado) values (:nom_empleado, :apellido_empleado)",
-      {
-        nom_empleado: nuevoEmpleado.nom_empleado,
-        apellido_empleado: nuevoEmpleado.apellido_empleado,
+.post("/",
+    body("empleado.nom_empleado").isAlpha().isLength({ min: 1, max: 100 }),
+    body("empleado.apellido_empleado").isAlpha().isLength({ min: 1, max: 45 }),
+    async (req, res) => {
+      const validacion = validationResult(req);
+      if (!validacion.isEmpty()) {
+        res.status(400).send({ errors: validacion.array() });
+        return;
       }
-    );
-    res.status(201).send({ mensaje: "Empleado agregado" });
-  })
-  
+
+      const nuevoEmpleado = req.body.empleado;
+      await db.execute(
+        "insert into empleados (nom_empleado, apellido_empleado) values (:nom_empleado, :apellido_empleado)",
+        {
+          nom_empleado: nuevoEmpleado.nom_empleado,
+          apellido_empleado: nuevoEmpleado.apellido_empleado,
+        }
+      );
+      res.status(201).send({ mensaje: "Empleado agregado" });
+    }
+  )
+
   //Consultar Empleado por id
-  .get("/:id", async (req, res) => {
+.get("/:id", async (req, res) => {
     const id = req.params.id;
     const [rows, fields] = await db.execute(
       "SELECT * FROM EMPLEADOS WHERE ID=:id",
