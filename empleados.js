@@ -7,8 +7,8 @@ export const empleadosRouter = express.Router()
 empleadosRouter
 
 .post("/",
-    body("empleado.nom_empleado").isAlpha().isLength({ min: 1, max: 100 }),
-    body("empleado.apellido_empleado").isAlpha().isLength({ min: 1, max: 45 }),
+    body("empleado.nom_empleado").isAlpha().isLength({ min: 1, max: 8 }),
+    body("empleado.apellido_empleado").isAlpha().isLength({ min: 1, max: 8 }),
     async (req, res) => {
       const validacion = validationResult(req);
       if (!validacion.isEmpty()) {
