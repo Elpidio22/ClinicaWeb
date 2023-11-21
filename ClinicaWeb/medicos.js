@@ -1,25 +1,42 @@
 import express from "express";
 import { db } from "./db.js";
+import { body, validationResult } from "express-validator";
 
 export const medicosRouter = express.Router()
 
-medicosRouter
-
-.post("/", async (req, res) => {
-    const nuevoMedico = req.body.medico;
-    const [rows] = await db.execute(
-      "insert into medicos (nombre, apellido, especialidad) values (:nombre, :apellido, :especialidad)",
+medicosRouter.post(
+  "/",
+  body("med_nombre")
+    .matches(/^[\p{L}\p{N}\s]+$/u)
+    .isLength({ min: 1, max: 60 })
+    .withMessage("Este campo es obligatorio. Debe tener entre 5 y 10 caracteres"),
+  body("med_apellidos")
+    .matches(/^[\p{L}\p{N}\s]+$/u)
+    .isLength({ min: 1, max: 45 })
+    .withMessage("Este campo es obligatorio. Debe tener entre 5 y 10 caracteres"),
+  body("id_especialidad")
+    .matches(/^[\p{L}\p{N}\s]+$/u)
+    .isLength({ min: 1, max: 30 }),
+  async (req, res) => {
+    const validacion = validationResult(req);
+    if (!validacion.isEmpty()) {
+      res.status(400).send({ errors: validacion.array() });
+    }
+    const { med_nombre, med_apellidos, id_especialidad } = req.body;
+    await db.execute(
+      "INSERT INTO medicos (med_nombre, med_apellidos, id_especialidad) values (:med_nombre, :med_apellidos, :id_especialidad)",
       {
-        nombre: nuevoMedico.nombre,
-        apellido: nuevoMedico.apellido,
-        especialidad_id: nuevoMedico.especialidad_id,
+        med_nombre: med_nombre,
+        med_apellidos: med_apellidos,
+        id_especialidad: id_especialidad,
       }
     );
     res.status(201).send({ mensaje: "Medico agregado" });
-  })
+  }
+);
   
   //Consultar Medico por id
-  .get("/:id", async (req, res) => {
+  medicosRouter.get("/:id", async (req, res) => {
     const id = req.params.id;
     const [rows, fields] = await db.execute(
       "SELECT * FROM MEDICOS WHERE ID_MEDICO=:id",
@@ -30,14 +47,20 @@ medicosRouter
     } else {
       res.status(404).send("Medico no encontrado");
     }
-  })
+  });
   
   //Consultar todos los Medicos
-  .get("/", async (req, res) => {
+  medicosRouter.get("/", async (req, res) => {
     const [rows, fields] = await db.execute("SELECT * FROM MEDICOS");
     if (rows.length > 0) {
       res.status(200).send(rows);
     } else {
       res.status(404).send("Medicos no encontrado");
     }
+  });
+
+  medicosRouter.delete("/:id", async (req, res) => {
+    const id = req.params.id;
+    await db.execute("delete from medicos where id_medico=:id", { id });
+    res.status(200).send({ mensaje: "Medico eliminado" });
   });
