@@ -1,31 +1,55 @@
 import express from "express";
 import { db } from "./db.js";
+import { body, param, validationResult } from "express-validator";
 
 export const turnosRouter = express.Router();
 
-turnosRouter
-
-  .post("/", async (req, res) => {
-    const nuevoTurno = req.body.nuevoTurno;
+turnosRouter.post(
+  "/",
+  body("fecha")
+    .isISO8601(),
+  body("hora"),
+  body("id_medicos")
+    .isInt({ min: 1 })
+    .withMessage("Debe ser un id de medico valido."),
+  body("id_paciente")
+    .isInt({ min: 1 })
+    .withMessage("Debe ser un id de paciente valido."),
+  body("id_especialidad")
+    .isInt({ min: 1 })
+    .withMessage("Debe ser una especialidad valida."),
+  body("cupos")
+    .isInt({ min:1, max:10 }),
+  body("hora_inicio"),
+  body("hora_fin"),
+  body("sala")
+    .isInt({ min: 1, max:20 }),
+  async (req, res) => {
+    const validacion = validationResult(req);
+    if (!validacion.isEmpty()) {
+      res.status(400).send({ errors: validacion.array() });
+    }
+    const { fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
     await db.execute(
-      "insert into turnos (fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala) values (:fecha, :hora, :id_medicos, :id_paciente, :id_especialidad, :cupos, :hora_inicio, :hora_fin, :sala)",
+      "INSERT INTO turnos (fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala) values (:fecha, :hora, :id_medicos, :id_paciente, :id_especialidad, :cupos, :hora_inicio, :hora_fin, :sala)",
       {
-        fecha: nuevoTurno.fecha,
-        hora: nuevoTurno.hora,
-        id_medicos: nuevoTurno.id_medicos,
-        id_paciente: nuevoTurno.id_paciente,
-        id_especialidad: nuevoTurno.id_especialidad,
-        cupos: nuevoTurno.cupos,
-        hora_inicio: nuevoTurno.hora_inicio,
-        hora_fin: nuevoTurno.hora_fin,
-        sala: nuevoTurno.sala,
+        fecha: fecha,
+        hora: hora,
+        id_medicos: id_medicos,
+        id_paciente: id_paciente,
+        id_especialidad: id_especialidad,
+        cupos: cupos,
+        hora_inicio: hora_inicio,
+        hora_fin: hora_fin,
+        sala: sala,
       }
     );
-    res.status(201).send({ mensaje: "Turno agendado" });
-  })
+    res.status(201).send({ mensaje: "Turno agregado" });
+  }
+);
 
   //Consultar Turno por id
-  .get("/:id", async (req, res) => {
+  turnosRouter.get("/:id", async (req, res) => {
     const id = req.params.id;
     const [rows, fields] = await db.execute(
       "SELECT * FROM TURNOS WHERE ID=:id",
@@ -36,45 +60,53 @@ turnosRouter
     } else {
       res.status(404).send("Turno no encontrado");
     }
-  })
+  });
 
   //Consultar todos los Turnos
-  .get("/", async (req, res) => {
+  turnosRouter.get("/", async (req, res) => {
     const [rows, fields] = await db.execute("SELECT * FROM TURNOS");
     if (rows.length > 0) {
       res.status(200).send(rows);
     } else {
       res.status(404).send("Turnos no encontrado");
     }
-  })
+  });
 
   //Modificar Turnos por id
-  .put("/:id", async (req, res) => {
-    const id = req.params.id;
-    const modificacionTurno = req.body.turnoEdit;
-    await db.execute(
-      "update turnos set fecha=:fecha, hora=:hora, id_medicos=:id_medicos, id_paciente=:id_paciente, id_especialidad=:id_especialidad, cupos=:cupos, hora_inicio=:hora_inicio, hora_fin=:hora_fin, sala=:sala WHERE id=:id",
-      {
-        id: id,
-        fecha: modificacionTurno.fecha,
-        hora: modificacionTurno.hora,
-        id_medicos: modificacionTurno.id_medicos,
-        id_paciente: modificacionTurno.id_paciente,
-        id_especialidad: modificacionTurno.id_especialidad,
-        cupos: modificacionTurno.cupos,
-        hora_inicio: modificacionTurno.hora_inicio,
-        hora_fin: modificacionTurno.hora_fin,
-        sala: modificacionTurno.sala,
+  turnosRouter.put(
+    "/:id",
+    param("id").isInt().isLength({ min: 1 }),
+    async (req, res) => {
+      const validacion = validationResult(req);
+      if (!validacion.isEmpty()) {
+        res.status(400).send({ errors: validacion.array() });
       }
-    );
-    res.status(200).send("Turno modificado");
-  })
+      const { id } = req.params;
+      const { fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
+      await db.execute(
+        "UPDATE turnos set fecha=:fecha, hora=:hora, id_medicos=:id_medicos, id_paciente=:id_paciente, id_especialidad=:id_especialidad, cupos=:cupos, hora_inicio=:hora_inicio, hora_fin=:hora_fin, sala=:sala WHERE id=:id",
+        {
+          id: id,
+          fecha: fecha,
+          hora: hora,
+          id_medicos: id_medicos,
+          id_paciente: id_paciente,
+          id_especialidad: id_especialidad,
+          cupos: cupos,
+          hora_inicio: hora_inicio,
+          hora_fin: hora_fin,
+          sala: sala,
+        }
+      );
+      res.status(200).send({ mensaje: "Turno modificado" });
+    }
+  );
 
-  .delete("/:id", async (req, res) => {
+  turnosRouter.delete("/:id", async (req, res) => {
     const id = req.params.id;
     await db.execute("delete from turnos where id=:id", { id });
     res.status(200).send({ mensaje: "Turno eliminado" });
-  })
+  });
 
   //Agregar Sobre turno
   // .post("/", async (req, res) => {
