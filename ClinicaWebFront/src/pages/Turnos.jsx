@@ -44,6 +44,9 @@ export const Turnos = () => {
           headers: { Authorization: `Bearer ${sesion.token}` },
         }
       );
+      
+      document.getElementById("modal-alta-turno").modal("hide");
+
 
       setTurnos([...turnos, response.data]);
       setFechaTurno("");
@@ -84,80 +87,6 @@ export const Turnos = () => {
     <>
       <h2>Turnos</h2>
       <div className="container">
-        <label htmlFor="fechaTurno">Fecha del Turno:</label>
-        <input
-          type="text"
-          id="fechaTurno"
-          value={fechaTurno}
-          onChange={(e) => setFechaTurno(e.target.value)}
-        />
-        <br />
-        <label htmlFor="horaTurno">Hora del Turno:</label>
-        <input
-          type="text"
-          id="horaTurno"
-          value={horaTurno}
-          onChange={(e) => setHoraTurno(e.target.value)}
-        />
-        <br />
-        <label htmlFor="idMedico">ID del Médico:</label>
-        <input
-          type="text"
-          id="id_medicos"
-          value={id_medicos}
-          onChange={(e) => setIdMedico(e.target.value)}
-        />
-        <br />
-        <label htmlFor="idPaciente">ID del Paciente:</label>
-        <input
-          type="text"
-          id="id_paciente"
-          value={id_paciente}
-          onChange={(e) => setIdPaciente(e.target.value)}
-        />
-        <br />
-        <label htmlFor="idEspecialidad">ID de la Especialidad:</label>
-        <input
-          type="text"
-          id="id_especialidad"
-          value={id_especialidad}
-          onChange={(e) => setIdEspecialidad(e.target.value)}
-        />
-        <br />
-        <label htmlFor="cuposTurno">Cupos del Turno:</label>
-        <input
-          type="text"
-          id="cuposTurno"
-          value={cuposTurno}
-          onChange={(e) => setCuposTurno(e.target.value)}
-        />
-        <br />
-        <label htmlFor="horaInicio">Hora de Inicio:</label>
-        <input
-          type="text"
-          id="hora_inicio"
-          value={hora_inicio}
-          onChange={(e) => setHoraInicio(e.target.value)}
-        />
-        <br />
-        <label htmlFor="horaFin">Hora de Fin:</label>
-        <input
-          type="text"
-          id="hora_fin"
-          value={hora_fin}
-          onChange={(e) => setHoraFin(e.target.value)}
-        />
-        
-        <label htmlFor="salaTurno">Sala del Turno:</label>
-        <input
-          type="text"
-          id="salaTurno"
-          value={salaTurno}
-          onChange={(e) => setSalaTurno(e.target.value)}
-        />
-
-        <button onClick={agregarTurno}>Agregar</button>
-
         <br />
         <br />
 
@@ -171,7 +100,81 @@ export const Turnos = () => {
         <button onClick={buscarTurno}>Buscar</button>
 
         <br />
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-alta-turno">
+  Crear un turno
+</button>
+<br />
 
+<div class="modal fade modal-fullscreen" id="modal-alta-turno" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Dar de alta un turno</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/turnos/alta" method="post">
+
+       
+          <input type="hidden" id="paciente" name="paciente" value="123" />
+
+          <div class="form-group">
+            <label for="fecha">Fecha</label>
+           
+            <input type="date" class="form-control" id="fecha" name="fecha" value="2023-12-01" />
+          </div>
+          <div class="form-group">
+            <label for="hora">Hora</label>
+           
+            <input type="time" class="form-control" id="hora" name="hora" value="12:00" />
+          </div>
+          <div class="form-group">
+            <label for="medicos">Médicos</label>
+           
+            <select class="form-control" id="medicos" name="medicos">
+              <option value="1">Dr. Médico 1</option>
+              <option value="2">Dra. Médico 2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="especialidad">Especialidad</label>
+            
+            <select class="form-control" id="especialidad" name="especialidad">
+              <option value="1">Cardiología</option>
+              <option value="2">Dermatología</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cupos">Cupos</label>
+            <input type="number" class="form-control" id="cupos" name="cupos" value="10" />
+          </div>
+          <div class="form-group">
+            <label for="hora_inicio">Hora de inicio</label>
+            <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" value="12:00" />
+          </div>
+          <div class="form-group">
+            <label for="hora_fin">Hora fin</label>
+            <input type="time" class="form-control" id="hora_fin" name="hora_fin" value="13:00" />
+          </div>
+          <div class="form-group">
+            <label for="sala">Sala</label>
+            <input type="text" class="form-control" id="sala" name="sala" value="Sala 101" />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-primary" onClick={agregarTurno}>Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        
+      </div>
         <table className="table table-hover">
           <thead className="table-success">
             <tr>
@@ -204,7 +207,7 @@ export const Turnos = () => {
             ))}
           </tbody>
         </table>
-      </div>
+        
     </>
   );
 };
