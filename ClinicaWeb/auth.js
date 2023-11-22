@@ -103,31 +103,4 @@ export const authRouter = express
       "SELECT id, usuario, rol FROM empleados"
     );
     res.send(rows);
-  });import passport from "passport";
-import { ExtractJwt, Strategy } from "passport-jwt";
-import express from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { body, validationResult } from "express-validator";
-import { db } from "./db.js";
-
-export function authConfig() {
-  const jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET,
-  };
-
-  passport.use(
-    new Strategy(jwtOptions, async (payload, next) => {
-      const [rows, fields] = await db.execute(
-        "SELECT usuario FROM empleado WHERE usuario = :usuario",
-        { usuario: payload.usuario }
-      );
-      if (rows.length > 0) {
-        next(null, rows[0]);
-      } else {
-        next(null, false);
-      }
-    })
-  );
-}
+  });
