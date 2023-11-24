@@ -18,52 +18,46 @@ pacientesRouter.post(
     .isNumeric()
     .isLength({ min: 1, max: 8 })
     .withMessage("El DNI tiene que ser de 8 dígitos"),
-  body("fecha_nacimiento")
-    .isISO8601(),
   body("telefono")
     .isLength({ min: 10, max: 12 })
     .withMessage("Teléfono no válido. El telefono dee tener entre 10 y 12 caracteres"),
   body("email")
     .isEmail()
     .withMessage("Debe ingresar un email valido"),
-  body("direccion")
-    .matches(/^[\p{L}\p{N}\s]+$/u)
+    body("direccion")
+    .isString()
     .isLength({ min: 1, max: 100 })
-    .withMessage("La dirección debe tener entre 1 y 100 caracteres"),
+    .withMessage("La dirección debe tener entre 1 y 100 caracteres")
+    .matches(/^[\p{L}\p{N}\s,]+$/u)
+    .withMessage("La dirección puede contener letras, números, espacios y comas"),
   body("genero")
   .isLength({ min: 1, max:20 }),
   body("seguro_medico")
     .matches(/^[\p{L}\p{N}\s]+$/u)
     .isLength({ min: 1, max: 30 }),
-  async (req, res) => {
-    const validacion = validationResult(req);
-    if (!validacion.isEmpty()) {
-      res.status(400).send({ errors: validacion.array() });
-    }
-    const { nombre, apellido, dni, fecha_nacimiento, telefono, email, direccion, genero, seguro_medico } = req.body;
-    await db.execute(
-      "INSERT INTO pacientes (nombre, apellido, dni, fecha_nacimiento, telefono, email, direccion, genero, seguro_medico) values (:nombre, :apellido, :dni, :fecha_nacimiento, :telefono, :email, :direccion, :genero, :seguro_medico)",
-      {
-        nombre: nombre,
-        apellido: apellido,
-        dni: dni,
-        fecha_nacimiento: fecha_nacimiento,
-        telefono: telefono,
-        email: email,
-        direccion: direccion,
-        genero: genero,
-        seguro_medico: seguro_medico,
+    
+    async (req, res) => {
+      try {
+        const { nombre, apellido, dni, telefono, email, direccion, genero, seguro_medico } = req.body;
+        await db.execute(
+          "INSERT INTO pacientes (nombre, apellido, dni, telefono, email, direccion, genero, seguro_medico) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          [nombre, apellido, dni, telefono, email, direccion, genero, seguro_medico]
+        );
+  
+        res.status(201).send({ mensaje: "Paciente agregado" });
+      } catch (error) {
+        console.error("Error al agregar paciente:", error);
+        res.status(500).send({ error: "Error interno del servidor" });
       }
-    );
-    res.status(201).send({ mensaje: "Paciente agregado" });
-  }
+    }
+
 );
 
 //Consultar Paciente por id
 pacientesRouter.get("/:id", async (req, res) => {
   const id = req.params.id;
   const [rows, fields] = await db.execute(
-    "SELECT * FROM PACIENTES WHERE ID_PACIENTE=:id",
+    "SELECT * FROM PACIENTES WHERE NOMBRE=:id",
     { id }
   );
   if (rows.length > 0) {
@@ -93,15 +87,14 @@ pacientesRouter.put(
       res.status(400).send({ errors: validacion.array() });
     }
     const { id } = req.params;
-    const { nombre, apellido, dni, fecha_nacimiento, telefono, email, direccion, genero, seguro_medico } = req.body;
+    const { nombre, apellido, dni, telefono, email, direccion, genero, seguro_medico } = req.body;
     await db.execute(
-      "UPDATE pacientes set nombre=:nombre, apellido=:apellido, dni=:dni, fecha_nacimiento=:fecha_nacimiento, telefono=:telefono, email=:email, direccion=:direccion, genero=:genero, seguro_medico=:seguro_medico WHERE id_paciente=:id",
+      "UPDATE pacientes set nombre=:nombre, apellido=:apellido, dni=:dni, telefono=:telefono, email=:email, direccion=:direccion, genero=:genero, seguro_medico=:seguro_medico WHERE id_paciente=:id",
       {
         id: id,
         nombre: nombre,
         apellido: apellido,
         dni: dni,
-        fecha_nacimiento: fecha_nacimiento,
         telefono: telefono,
         email: email,
         direccion: direccion,

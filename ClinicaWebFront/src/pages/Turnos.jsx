@@ -2,212 +2,293 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthContext } from "../context/AuthContext";
 
-
 export const Turnos = () => {
   const { sesion } = useAuthContext();
   const [turnos, setTurnos] = useState([]);
   const [fechaTurno, setFechaTurno] = useState("");
   const [horaTurno, setHoraTurno] = useState("");
-  const [id_medicos, setIdMedico] = useState("");
-  const [id_paciente, setIdPaciente] = useState("");
-  const [id_especialidad, setIdEspecialidad] = useState("");
+  const [medicoId, setMedicoId] = useState("");
+  const [pacienteId, setPacienteId] = useState("");
+  const [especialidadId, setEspecialidadId] = useState("");
   const [cuposTurno, setCuposTurno] = useState("");
-  const [hora_inicio, setHoraInicio] = useState("");
-  const [hora_fin, setHoraFin] = useState("");
+  const [horaInicioTurno, setHoraInicioTurno] = useState("");
+  const [horaFinTurno, setHoraFinTurno] = useState("");
   const [salaTurno, setSalaTurno] = useState("");
-  const [ingreseTurno, setIngreseTurno] = useState("");
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:3000/turnos`, {
-        headers: { Authorization: `Bearer ${sesion.token}` },
-      })
-      .then((response) => setTurnos(response.data));
-  }, [sesion]);
+    cargarTurnos();
+  }, []);
 
-  const agregarTurno = async () => {
+  const cargarTurnos = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:3000/turnos",
-        {
-          fecha: fechaTurno,
-          hora: horaTurno,
-          id_medicos: id_medicos,
-          id_paciente: id_paciente,
-          id_especialidad: id_especialidad,
-          cupos: cupos,
-          hora_inicio: hora_inicio,
-          hora_fin: hora_fin,
-          sala: salaTurno,
-        },
-        {
-          headers: { Authorization: `Bearer ${sesion.token}` },
-        }
-      );
-      
-      document.getElementById("modal-alta-turno").modal("hide");
-
-
-      setTurnos([...turnos, response.data]);
-      setFechaTurno("");
-      setHoraTurno("");
-      setId_medico("");
-      setId_paciente("");
-      setId_especialidad("");
-      setCuposTurno("");
-      setHoraInicio("");
-      setHoraFin("");
-      setSalaTurno("");
+      const response = await axios.get("http://localhost:3000/turnos");
+      setTurnos(response.data);
     } catch (error) {
-      console.error("Error al agregar turno:", error);
+      console.error("Error al cargar turnos:", error);
     }
   };
 
-  const buscarTurno = async () => {
+  const agregarTurno = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/turnos/${ingreseTurno}`, {
-        headers: { Authorization: `Bearer ${sesion.token}` },
-      });
+      if (turnoSeleccionado) {
+        // Si hay un turno seleccionado, realizar una actualización
+        await axios.put(
+          `http://localhost:3000/turnos/${turnoSeleccionado.id}`,
+          {
+            fecha: fechaTurno,
+            hora: horaTurno,
+            id_medico: medicoId,
+            id_paciente: pacienteId,
+            id_especialidad: especialidadId,
+            cupos: cuposTurno,
+            hora_inicio: horaInicioTurno,
+            hora_fin: horaFinTurno,
+            sala: salaTurno,
+          }
+        );
 
-      // Si ingreseTurno está vacío, cargar todos los turnos nuevamente
-      if (!ingreseTurno.trim()) {
-        const allTurnos = await axios.get("http://localhost:3000/turnos", {
-          headers: { Authorization: `Bearer ${sesion.token}` },
-        });
-        setTurnos(allTurnos.data);
+        // Actualizar la lista de turnos después de la actualización
+        cargarTurnos();
       } else {
-        setTurnos([response.data]);
+        // Si no hay turno seleccionado, agregar uno nuevo
+        const response = await axios.post(
+          "http://localhost:3000/turnos",
+          {
+            fecha: fechaTurno,
+            hora: horaTurno,
+            id_medico: medicoId,
+            id_paciente: pacienteId,
+            id_especialidad: especialidadId,
+            cupos: cuposTurno,
+            hora_inicio: horaInicioTurno,
+            hora_fin: horaFinTurno,
+            sala: salaTurno,
+          }
+        );
+
+        setTurnos([...turnos, response.data]);
       }
+
+      // Limpiar los campos del formulario después de agregar o actualizar el turno
+      setTurnoSeleccionado(null);
+      setFechaTurno("");
+      setHoraTurno("");
+      setMedicoId("");
+      setPacienteId("");
+      setEspecialidadId("");
+      setCuposTurno("");
+      setHoraInicioTurno("");
+      setHoraFinTurno("");
+      setSalaTurno("");
+      cargarTurnos();
     } catch (error) {
-      console.error("Error al buscar turno:", error);
+      console.error("Error al agregar o actualizar turno:", error);
+    }
+  };
+
+  const editarTurno = (turno) => {
+    setTurnoSeleccionado(turno);
+    setFechaTurno(turno.fecha);
+    setHoraTurno(turno.hora);
+    setMedicoId(turno.id_medico);
+    setPacienteId(turno.id_paciente);
+    setEspecialidadId(turno.id_especialidad);
+    setCuposTurno(turno.cupos);
+    setHoraInicioTurno(turno.hora_inicio);
+    setHoraFinTurno(turno.hora_fin);
+    setSalaTurno(turno.sala);
+  };
+
+  const eliminarTurno = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3000/turnos/${id}`);
+
+      const updatedTurnos = turnos.filter(
+        (turno) => turno.id !== id
+      );
+      setTurnos(updatedTurnos);
+    } catch (error) {
+      console.error("Error al eliminar turno:", error);
     }
   };
 
   return (
-    <>
-      <h2>Turnos</h2>
-      <div className="container">
-        <br />
-        <br />
+    <div className="container-fluid">
+      <div className="row">
+        <div className="col-md-6">
+          <h2>Turnos</h2>
+          <div className="flex-grow-1">
+            {/* Formulario de alta */}
+            <form id="alta-turno-form">
+              <div className="form-group">
+                <label htmlFor="fechaTurno">Fecha</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="fechaTurno"
+                  name="fechaTurno"
+                  value={fechaTurno}
+                  onChange={(e) => setFechaTurno(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="horaTurno">Hora</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="horaTurno"
+                  name="horaTurno"
+                  value={horaTurno}
+                  onChange={(e) => setHoraTurno(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="medicoId">ID Médico</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="medicoId"
+                  name="medicoId"
+                  value={medicoId}
+                  onChange={(e) => setMedicoId(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="pacienteId">ID Paciente</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="pacienteId"
+                  name="pacienteId"
+                  value={pacienteId}
+                  onChange={(e) => setPacienteId(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="especialidadId">ID Especialidad</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="especialidadId"
+                  name="especialidadId"
+                  value={especialidadId}
+                  onChange={(e) => setEspecialidadId(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="cuposTurno">Cupos</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="cuposTurno"
+                  name="cuposTurno"
+                  value={cuposTurno}
+                  onChange={(e) => setCuposTurno(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="horaInicioTurno">Hora Inicio</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="horaInicioTurno"
+                  name="horaInicioTurno"
+                  value={horaInicioTurno}
+                  onChange={(e) => setHoraInicioTurno(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="horaFinTurno">Hora Fin</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="horaFinTurno"
+                  name="horaFinTurno"
+                  value={horaFinTurno}
+                  onChange={(e) => setHoraFinTurno(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="salaTurno">Sala</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="salaTurno"
+                  name="salaTurno"
+                  value={salaTurno}
+                  onChange={(e) => setSalaTurno(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={agregarTurno}
+              >
+                Guardar
+              </button>
+            </form>
+          </div>
+        </div>
 
-        <label htmlFor="ingreseTurno">Ingrese Turno:</label>
-        <input
-          type="text"
-          id="ingreseTurno"
-          value={ingreseTurno}
-          onChange={(e) => setIngreseTurno(e.target.value)}
-        />
-        <button onClick={buscarTurno}>Buscar</button>
-
-        <br />
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-alta-turno">
-  Crear un turno
-</button>
-<br />
-
-<div class="modal fade modal-fullscreen" id="modal-alta-turno" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-fullscreen">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Dar de alta un turno</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form action="/turnos/alta" method="post">
-
-       
-          <input type="hidden" id="paciente" name="paciente" value="123" />
-
-          <div class="form-group">
-            <label for="fecha">Fecha</label>
-           
-            <input type="date" class="form-control" id="fecha" name="fecha" value="2023-12-01" />
-          </div>
-          <div class="form-group">
-            <label for="hora">Hora</label>
-           
-            <input type="time" class="form-control" id="hora" name="hora" value="12:00" />
-          </div>
-          <div class="form-group">
-            <label for="medicos">Médicos</label>
-           
-            <select class="form-control" id="medicos" name="medicos">
-              <option value="1">Dr. Médico 1</option>
-              <option value="2">Dra. Médico 2</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="especialidad">Especialidad</label>
-            
-            <select class="form-control" id="especialidad" name="especialidad">
-              <option value="1">Cardiología</option>
-              <option value="2">Dermatología</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="cupos">Cupos</label>
-            <input type="number" class="form-control" id="cupos" name="cupos" value="10" />
-          </div>
-          <div class="form-group">
-            <label for="hora_inicio">Hora de inicio</label>
-            <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" value="12:00" />
-          </div>
-          <div class="form-group">
-            <label for="hora_fin">Hora fin</label>
-            <input type="time" class="form-control" id="hora_fin" name="hora_fin" value="13:00" />
-          </div>
-          <div class="form-group">
-            <label for="sala">Sala</label>
-            <input type="text" class="form-control" id="sala" name="sala" value="Sala 101" />
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-            <button type="submit" class="btn btn-primary" onClick={agregarTurno}>Guardar</button>
-          </div>
-        </form>
+        {/* Sección de la tabla */}
+        <div className="col-md-6">
+          <table className="table table-hover">
+            <thead className="table-success">
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>ID Médico</th>
+                <th>ID Paciente</th>
+                <th>ID Especialidad</th>
+                <th>Cupos</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Sala</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {turnos.map((turno) => (
+                <tr
+                  key={turno.id}
+                  onDoubleClick={() => editarTurno(turno)}
+                >
+                  <td>{turno.id}</td>
+                  <td>{turno.fecha}</td>
+                  <td>{turno.hora}</td>
+                  <td>{turno.id_medico}</td>
+                  <td>{turno.id_paciente}</td>
+                  <td>{turno.id_especialidad}</td>
+                  <td>{turno.cupos}</td>
+                  <td>{turno.hora_inicio}</td>
+                  <td>{turno.hora_fin}</td>
+                  <td>{turno.sala}</td>
+                  <td>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => eliminarTurno(turno.id)}
+                    >
+                      Eliminar
+                    </button>
+                    <br />
+                    <br />
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => editarTurno(turno)}
+                    >
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-
-        
-      </div>
-        <table className="table table-hover">
-          <thead className="table-success">
-            <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>ID Médico</th>
-              <th>ID Paciente</th>
-              <th>ID Especialidad</th>
-              <th>Cupos</th>
-              <th>Hora Inicio</th>
-              <th>Hora Fin</th>
-              <th>Sala</th>
-            </tr>
-          </thead>
-          <tbody>
-            {turnos.map((turno) => (
-              <tr key={turno.id} onDoubleClick={() => buscarTurno(turno)}>
-                <td>{turno.id}</td>
-                <td>{turno.fecha}</td>
-                <td>{turno.hora}</td>
-                <td>{turno.id_medicos}</td>
-                <td>{turno.id_paciente}</td>
-                <td>{turno.id_especialidad}</td>
-                <td>{turno.cupos}</td>
-                <td>{turno.hora_inicio}</td>
-                <td>{turno.hora_fin}</td>
-                <td>{turno.sala}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        
-    </>
   );
 };
+
+export default Turnos;

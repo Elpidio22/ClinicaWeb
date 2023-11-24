@@ -9,7 +9,7 @@ turnosRouter.post(
   body("fecha")
     .isISO8601(),
   body("hora"),
-  body("id_medicos")
+  body("id_medico")
     .isInt({ min: 1 })
     .withMessage("Debe ser un id de medico valido."),
   body("id_paciente")
@@ -29,13 +29,13 @@ turnosRouter.post(
     if (!validacion.isEmpty()) {
       res.status(400).send({ errors: validacion.array() });
     }
-    const { fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
+    const { fecha, hora, id_medico, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
     await db.execute(
-      "INSERT INTO turnos (fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala) values (:fecha, :hora, :id_medicos, :id_paciente, :id_especialidad, :cupos, :hora_inicio, :hora_fin, :sala)",
+      "INSERT INTO turnos (fecha, hora, id_medico, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala) values (:fecha, :hora, :id_medico, :id_paciente, :id_especialidad, :cupos, :hora_inicio, :hora_fin, :sala)",
       {
         fecha: fecha,
         hora: hora,
-        id_medicos: id_medicos,
+        id_medico: id_medico,
         id_paciente: id_paciente,
         id_especialidad: id_especialidad,
         cupos: cupos,
@@ -82,14 +82,14 @@ turnosRouter.post(
         res.status(400).send({ errors: validacion.array() });
       }
       const { id } = req.params;
-      const { fecha, hora, id_medicos, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
+      const { fecha, hora, id_medico, id_paciente, id_especialidad, cupos, hora_inicio, hora_fin, sala } = req.body;
       await db.execute(
-        "UPDATE turnos set fecha=:fecha, hora=:hora, id_medicos=:id_medicos, id_paciente=:id_paciente, id_especialidad=:id_especialidad, cupos=:cupos, hora_inicio=:hora_inicio, hora_fin=:hora_fin, sala=:sala WHERE id=:id",
+        "UPDATE turnos set fecha=:fecha, hora=:hora, id_medicos=:id_medico, id_paciente=:id_paciente, id_especialidad=:id_especialidad, cupos=:cupos, hora_inicio=:hora_inicio, hora_fin=:hora_fin, sala=:sala WHERE id=:id",
         {
           id: id,
           fecha: fecha,
           hora: hora,
-          id_medicos: id_medicos,
+          id_medico: id_medico,
           id_paciente: id_paciente,
           id_especialidad: id_especialidad,
           cupos: cupos,

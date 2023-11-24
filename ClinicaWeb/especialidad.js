@@ -29,10 +29,11 @@ especialidadRouter.post(
 //Consultar todas las Especialidades
 especialidadRouter.get("/", async (req, res) => {
   const [rows, fields] = await db.execute("SELECT * FROM especialidad");
-  res.status(200).send({
-    totalRows: rows.length,
-    data: rows,
-  });
+  if (rows.length > 0) {
+    res.status(200).send(rows);
+  } else {
+    res.status(404).send("Especialidad no encontrada");
+  }
 });
   
   //Consultar Especialidad por id

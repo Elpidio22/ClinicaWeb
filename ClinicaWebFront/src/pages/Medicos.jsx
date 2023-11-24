@@ -42,8 +42,7 @@ export const Medicos = () => {
       setNombreMedico("");
       setApellidosMedico("");
       setEspecialidadMedico("");
-    
-        
+      cargarMedicos();
     } catch (error) {
       console.error("Error al agregar médico:", error);
     }

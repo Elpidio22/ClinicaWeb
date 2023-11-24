@@ -8,13 +8,19 @@ export const Especialidad = () => {
   const [nombreEspecialidad, setNombreEspecialidad] = useState("");
   const [ingreseEspecialidad, setIngreseEspecialidad] = useState("");
 
+
   useEffect(() => {
-    axios
-      .get(`http://localhost:3000/especialidad`, {
-        headers: { Authorization: `Bearer ${sesion.token}` },
-      })
-      .then((response) => setEspecialidades(response.data.data));
-  }, [sesion]);
+   cargarEspecialidades(); 
+  },[]);
+
+  const cargarEspecialidades = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/especialidad");
+      setEspecialidades(response.data);
+    } catch (error) {
+      console.error("Error al cargar especialidades:", error);
+    }
+  };
 
   const agregarEspecialidad = async () => {
     try {
@@ -30,6 +36,7 @@ export const Especialidad = () => {
 
       setEspecialidades([...especialidades, response.data]);
       setNombreEspecialidad("");
+      cargarEspecialidades();
     } catch (error) {
       console.error("Error al agregar especialidad:", error);
     }
@@ -106,7 +113,7 @@ export const Especialidad = () => {
           </thead>
           <tbody>
             {especialidades.map((especialidad,id_especialidad) => (
-              <tr key={id_especialidad.id_especialidad} onDoubleClick={() => buscarEspecialidad(especialidad)}>
+              <tr key={id_especialidad.id_especialidad} onClick={() => buscarEspecialidad(especialidad)}>
                 <td>{especialidad.id_especialidad}</td>
                 <td>{especialidad.nombre}</td>
                 <td> 
